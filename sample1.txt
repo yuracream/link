@@ -1,0 +1,17 @@
+https://stackoverflow.com/questions/65099144/how-to-improve-the-detection-of-the-defect-on-the-surface
+
+https://github.com/topics/defect-prediction
+
+https://www.researchgate.net/figure/Defect-inspection-results-using-the-proposed-MSCDAE-model-The-images-a-d-and-e-h_fig5_324179731
+
+https://www.spiedigitallibrary.org/journals/journal-of-micro-nanopatterning-materials-and-metrology/volume-20/issue-04/041205/Mask-defect-detection-with-hybrid-deep-learning-network/10.1117/1.JMM.20.4.041205.full?SSO=1
+
+https://saturday-in-the-park.netlify.app/ComputerVision/VisualInspection/
+
+https://qiita.com/shinmura0/items/cfb51f66b2d172f2403b
+
+https://qiita.com/shinmura0/items/54585fccbb20cb2879fd
+
+https://www.nttdata-sbc.co.jp/labo/20201005.html
+
+https://colors.ambl.co.jp/automatic-defective-product-detection-by-python-image-detection/
