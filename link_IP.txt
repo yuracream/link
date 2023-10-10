@@ -206,3 +206,76 @@ plt.show()
 ただし、すべての問題においてエポック数が平坦化した時点で学習を停止すれば良いというわけではありません。問題によっては、学習が収束するまで長い時間が必要な場合もあります。そのため、問題の特性やデータの大きさに応じて、適切なエポック数を選ぶ必要があります。
 
 適切なエポック数を見つけるために、定期的にモデルの性能を評価し、過学習が始まる前に学習を停止することが重要です。これを行うために、訓練データと検証データに対する損失や精度を監視しながら学習を進めると良いでしょう。
+
+
+###
+はい、NG品と判断された画像について、モデルがどの部分を見て判断したのかを可視化し、それに基づいてマークをつけることは可能です。これを Grad-CAM (Gradient-weighted Class Activation Mapping) と呼ばれる手法を使用して実現できます。
+
+Grad-CAMは、畳み込みニューラルネットワークが特定のクラス（この場合はNGクラス）を識別する際にどの特徴量に注目しているかを可視化する手法です。具体的には、モデルの出力層における勾配を逆伝播させ、それを元に特徴マップを重み付けして加算します。これによって、モデルが判断を下す際に注目している画像の部分を可視化することができます。
+
+以下に、TensorFlowを使用してGrad-CAMを実装する基本的な手順を示します：
+
+python
+Copy code
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.applications import VGG16
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications.vgg16 import preprocess_input, decode_predictions
+import cv2
+
+# 事前学習済みのVGG16モデルをロード
+model = VGG16(weights='imagenet')
+
+# 画像の読み込み（NG品の画像を読み込む）
+img_path = 'path/to/ng_image.jpg'
+img = image.load_img(img_path, target_size=(224, 224))
+x = image.img_to_array(img)
+x = np.expand_dims(x, axis=0)
+x = preprocess_input(x)
+
+# 画像に対する予測クラスを取得
+preds = model.predict(x)
+
+# 最も予測確率の高いクラスのインデックスを取得
+class_idx = np.argmax(preds[0])
+
+# 最後の畳み込み層の出力を取得
+last_conv_layer = model.get_layer('block5_conv3')
+
+# クラスに対する勾配を取得
+grads = K.gradients(model.output[:, class_idx], last_conv_layer.output)[0]
+
+# 各エントリを平均化して重要度を得る
+pooled_grads = K.mean(grads, axis=(0, 1, 2))
+iterate = K.function([model.input], [pooled_grads, last_conv_layer.output[0]])
+
+pooled_grads_value, conv_layer_output_value = iterate([x])
+
+# 重要度と最後の畳み込み層の出力を掛けて、クラス活性化マップを作成
+for i in range(last_conv_layer.output.shape[3]):
+    conv_layer_output_value[:, :, i] *= pooled_grads_value[i]
+
+# クラス活性化マップの平均値を計算して可視化
+heatmap = np.mean(conv_layer_output_value, axis=-1)
+heatmap = np.maximum(heatmap, 0)
+heatmap /= np.max(heatmap)
+
+# オリジナルの画像を読み込み
+img = cv2.imread(img_path)
+
+# ヒートマップのサイズにリサイズ
+heatmap = cv2.resize(heatmap, (img.shape[1], img.shape[0]))
+
+# ヒートマップをRGBに変換
+heatmap = np.uint8(255 * heatmap)
+
+# ヒートマップをもとの画像に適用
+heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
+
+# ヒートマップをもとの画像に重ねる
+superimposed_img = heatmap * 0.4 + img
+
+# 画像を保存
+cv2.imwrite('path/to/output_heatmap.jpg', superimposed_img)
+このコードは、VGG16モデルを使用していますが、必要に応じて他のモデルに置き換えることができます。Grad-CAMは、モデルの予測に寄与している領域を視覚化する強力な手法です。これによって、NG品として分類された理由を理解しやすくなります。
