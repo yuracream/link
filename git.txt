@@ -1,0 +1,6 @@
+cd /Users/＊＊＊/Library/Mobile\ Documents/com\~apple\~CloudDocs/python_home/python_home/Git
+cd sample  
+git add . 
+git status
+git commit -m "Gitにファイル登録"
+git push origin master
