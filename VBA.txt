@@ -1,0 +1,63 @@
+Sub CopyDataBasedOnDate()
+    Dim ws As Worksheet
+    Dim lastRow As Long, targetRow As Long, lastColumn As Long
+    Dim searchDate As Date
+    Dim i As Long, j As Long
+    
+    ' 対象のシートを指定（シート名を変更してください）
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+    
+    ' 検索する日付を指定（日付の形式を変更してください）
+    searchDate = CDate("2023/10/17 20:15:05")
+    
+    ' J列の最終行を取得
+    lastRow = ws.Cells(ws.Rows.Count, "J").End(xlUp).Row
+    
+    ' 日付が一致する行を探す（複数一致した場合、最後に一致した行が選択されます）
+    For i = 1 To lastRow
+        If CDate(ws.Cells(i, "J").Value) = searchDate Then
+            targetRow = i ' 対象の行を特定
+        End If
+    Next i
+    
+    ' 対象の行から最終列までのデータをコピー
+    If targetRow > 0 Then
+        lastColumn = ws.Cells(targetRow, ws.Columns.Count).End(xlToLeft).Column
+        ws.Range(ws.Cells(targetRow + 1, 1), ws.Cells(targetRow + 1, lastColumn)).Copy
+        
+        ' コピー先のセルを指定（例: A2 に貼り付ける場合）
+        ws.Cells(2, 1).PasteSpecial Paste:=xlPasteValues
+        Application.CutCopyMode = False ' コピー範囲をクリア
+    Else
+        MsgBox "指定した日付が見つかりませんでした。"
+    End If
+End Sub
+
+Sub CopyAndPasteData()
+    Dim ws As Worksheet
+    Dim lastRowT As Long, lastColumn As Long, lastRowA As Long
+    Dim sourceRange As Range, destinationRange As Range
+    
+    ' 対象のシートを指定（シート名を変更してください）
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+    
+    ' T列の最終行を取得
+    lastRowT = ws.Cells(ws.Rows.Count, "T").End(xlUp).Row
+    
+    ' T列の最終行から最終列までのデータをコピーする範囲を指定
+    Set sourceRange = ws.Range(ws.Cells(lastRowT, 20), ws.Cells(lastRowT, ws.Columns.Count))
+    
+    ' A列の最終行を取得
+    lastRowA = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    
+    ' コピーしたデータを貼り付ける範囲を指定
+    Set destinationRange = ws.Range(ws.Cells(lastRowA + 1, 1), ws.Cells(lastRowA + 1, 1).Offset(0, sourceRange.Columns.Count - 1))
+    
+    ' データをコピーして貼り付ける
+    sourceRange.Copy
+    destinationRange.PasteSpecial Paste:=xlPasteValues
+    
+    ' コピー範囲とコピー先のセルをクリア
+    Application.CutCopyMode = False
+End Sub
+
