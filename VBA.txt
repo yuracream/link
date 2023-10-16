@@ -61,3 +61,26 @@ Sub CopyAndPasteData()
     Application.CutCopyMode = False
 End Sub
 
+Sub MarkDatesInRange()
+    Dim ws As Worksheet
+    Dim startDate As Date, endDate As Date
+    Dim cell As Range
+    
+    ' 対象のシートを指定（シート名を変更してください）
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+    
+    ' ユーザーに日付範囲を入力させる
+    startDate = InputBox("開始日（yyyy/mm/dd）を入力してください:", "日付範囲")
+    endDate = InputBox("終了日（yyyy/mm/dd）を入力してください:", "日付範囲")
+    
+    ' 日付範囲内のセルに"1W"を入力する
+    For Each cell In ws.Range("A:A")
+        If IsDate(cell.Value) Then
+            If cell.Value >= startDate And cell.Value <= endDate Then
+                ' 日付が範囲内にある場合、B列に"1W"を入力
+                cell.Offset(0, 1).Value = "1W"
+            End If
+        End If
+    Next cell
+End Sub
+
