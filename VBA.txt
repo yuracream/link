@@ -84,3 +84,76 @@ Sub MarkDatesInRange()
     Next cell
 End Sub
 
+
+VBA
+
+
+
+Sub CreateMacroButton()
+    Dim btn As Button
+    
+    ' マクロを実行するボタンを作成
+    Set btn = ActiveSheet.Buttons.Add(10, 10, 100, 50)
+'    btn.OnAction = "YourMacroName" ' 実行したいマクロの名前を設定
+'    btn.Caption = "実行するマクロ" ' ボタンのテキストを設定
+End Sub
+
+
+Sub RunMacroInActiveWorkbook()
+    Dim activeBook As Workbook
+    
+    ' アクティブなブックを取得
+    Set activeBook = ActiveWorkbook
+    
+    ' アクティブブック内のMacroAを実行
+    Application.Run activeBook.Name & "!WriteTimeToLastEmptyCell"
+End Sub
+
+Sub CopyAndPaste()
+    Dim copiedValue As Variant
+    Dim ws1 As Worksheet
+    Dim ws2 As Worksheet
+    Dim targetCell As Range
+    
+    ' コピー元のシートとセルを指定
+    Set ws1 = ThisWorkbook.Sheets("Sheet1")
+    copiedValue = ws1.Range("A1").Value
+    
+    ' ペースト先のシートを指定
+    Set ws2 = Workbooks("Book2.xlsm").Sheets("Sheet1") ' Book2.xlsxは目的のブック名に変更してください
+    
+    ' ユーザーがクリックしたセルを取得
+    Set targetCell = ws2.Range("A1") ' デフォルトではA1にペーストします
+    
+    ' コピーした値をペースト
+    targetCell.Value = copiedValue
+End Sub
+
+.
+
+Sub WriteTimeToLastEmptyCell()
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim i As Long
+    
+    ' 対象のシートを指定（シート名を変更してください）
+'    Set ws = ThisWorkbook.Sheets("Sheet1")
+    Set ws = ActiveSheet
+    
+    
+    ' A列の最終行を取得
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    Cells(lastRow + 1, 1).Value = Now
+    
+    
+'    ' 下から上に向かって空白セルを探し、最初に見つかった空白セルに現在の時刻を書き込む
+'    For i = lastRow To 1 Step -1
+'        If IsEmpty(ws.Cells(i, 1)) Then
+'            ws.Cells(i + 1, 1).Value = Now ' 現在の時刻を書き込む
+'            Exit Sub ' 最初の空白セルに書き込んだら終了
+'        End If
+'    Next i
+End Sub
+
+.
+
