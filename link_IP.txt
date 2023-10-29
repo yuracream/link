@@ -1,3 +1,84 @@
+PaDiMの実装に赤いマークがついたら、元のテスト画像の名前をNGのリストに追加するためのコードが以下になります。このコードは、plot_fig関数内でスコアが閾値を超えた場合に、そのテスト画像のファイルパスをng_imagesというリストに追加します。このリストは最後にファイルに書き込まれます。
+
+python
+Copy code
+import random
+from random import sample
+import argparse
+import numpy as np
+import os
+import pickle
+from tqdm import tqdm
+from collections import OrderedDict
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_curve
+from sklearn.metrics import precision_recall_curve
+from sklearn.covariance import LedoitWolf
+from scipy.spatial.distance import mahalanobis
+from scipy.ndimage import gaussian_filter
+from skimage import morphology
+from skimage.segmentation import mark_boundaries
+import matplotlib.pyplot as plt
+import matplotlib
+
+import torch
+import torch.nn.functional as F
+from torch.utils.data import DataLoader
+from torchvision.models import wide_resnet50_2, resnet18
+import datasets.mvtec as mvtec
+
+# ... （前回のコードからの続き）
+
+def plot_fig(test_img, scores, gts, threshold, save_dir, class_name, ng_images):
+    num = len(scores)
+    vmax = scores.max() * 255.
+    vmin = scores.min() * 255.
+    for i in range(num):
+        img = test_img[i]
+        img = denormalization(img)
+        gt = gts[i].transpose(1, 2, 0).squeeze()
+        heat_map = scores[i] * 255
+        mask = scores[i]
+        mask[mask > threshold] = 1
+        mask[mask <= threshold] = 0
+        kernel = morphology.disk(4)
+        mask = morphology.opening(mask, kernel)
+        mask *= 255
+        vis_img = mark_boundaries(img, mask, color=(1, 0, 0), mode='thick')
+        
+        # スコアが閾値を超えたらNG画像のリストに追加
+        if mask.max() > 0:
+            ng_images.append(class_name + '_{}'.format(i))
+        
+        # ... （前回のコードからの続き）
+
+# ... （前回のコードからの続き）
+
+def main():
+    # ... （前回のコードからの続き）
+    ng_images = []  # NG画像のファイル名を保存するリスト
+    
+    for class_name in mvtec.CLASS_NAMES:
+        # ... （前回のコードからの続き）
+        
+        # スコアが閾値を超えたらNG画像のリストに追加
+        plot_fig(test_imgs, scores, gt_mask_list, threshold, save_dir, class_name, ng_images)
+        
+        # ... （前回のコードからの続き）
+    
+    # NG画像のファイル名をファイルに書き込む
+    with open('ng_images.txt', 'w') as f:
+        for item in ng_images:
+            f.write("%s\n" % item)
+
+    # ... （前回のコードからの続き）
+
+if __name__ == '__main__':
+    main()
+このコードでは、plot_fig関数内でスコアが閾値を超えた場合に、ng_imagesリストにそのテスト画像のファイル名を追加します。最後に、このリストをng_images.txtというファイルに書き込みます。
+
+
+
 学習済みモデルはなんで今回のような異常検知にも使えるの？欠陥の画像も学習してるの？
 ChatGPT
 学習済みモデルが異常検知に使用できるのは、異常検知が元々は通常のものとは異なるパターンや特徴を持つものを検知する問題だからです。例えば、通常の製品の画像を大量に学習したモデルは、通常の製品の特徴を把握しています。したがって、通常の製品とは異なる特徴を持つ欠陥や異常な製品を検知することができます。
