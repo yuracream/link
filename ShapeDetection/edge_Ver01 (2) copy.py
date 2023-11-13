@@ -439,6 +439,53 @@ def Sobel6():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
+
+import cv2
+import numpy as np
+
+def Sobel6():
+    # 画像読み込み
+    img1 = cv2.imread('006.png', cv2.IMREAD_UNCHANGED)
+    img2 = cv2.imread('008.png', cv2.IMREAD_UNCHANGED)
+
+    # リサイズ
+    new_size = (500, 340)  # 任意のサイズに変更
+    img1_resized = cv2.resize(img1, new_size)
+    img2_resized = cv2.resize(img2, new_size)
+
+    # 画像差分の計算
+    diff = cv2.absdiff(img1_resized, img2_resized)
+
+    # 差分に4倍して128を加える
+    diff = cv2.addWeighted(diff, 4, np.zeros_like(diff), 0, 128)
+
+    # ノイズ除去（メディアンフィルタ）
+    diff_median = cv2.medianBlur(diff, 5)
+
+    # ソーベルフィルタ
+    sobel_x = cv2.Sobel(diff_median, cv2.CV_32F, 1, 0)  # X方向
+    sobel_y = cv2.Sobel(diff_median, cv2.CV_32F, 0, 1)  # Y方向
+
+    # 立下りエッジ（白から黒へ変化する部分）がマイナスになるため絶対値を取る
+    # alphaの値は画像表示に合わせて倍率調整
+    sobel_x = cv2.convertScaleAbs(sobel_x, alpha=0.5)
+    sobel_y = cv2.convertScaleAbs(sobel_y, alpha=0.5)
+
+    # X方向とY方向を足し合わせる
+    sobel_xy = cv2.add(sobel_x, sobel_y)
+
+    # モルフォロジー変換（膨張と収縮）
+    kernel = np.ones((5, 5), np.uint8)
+    dilated = cv2.dilate(sobel_xy, kernel, iterations=1)
+    eroded = cv2.erode(dilated, kernel, iterations=1)
+
+    # 画像表示
+    cv2.imshow("SobelXY", sobel_xy)
+    cv2.imshow("Eroded", eroded)
+
+    # Sobelフィルタでエッジを抽出し、その後にモルフォロジー変換を行います。この例では膨張（Dilation）と収縮（Erosion）を交互に行っています。これにより、あいまいな線が矩形に変換される可能性があります。調整が必要ならば、カーネルサイズや反復回数などを変更してみてください。
+
+
 if __name__=="__main__":
     # Laplacian()
     # Sobel()
