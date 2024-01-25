@@ -1,0 +1,71 @@
+Sub ConvertDataUsingSQL()
+    Dim conn As Object
+    Dim rs As Object
+    Dim sql As String
+    Dim sourceSheet As Worksheet
+    Dim targetSheet As Worksheet
+    Dim lastRow As Long
+    Dim i As Long
+    Dim sourceDate As String
+    Dim convertedType As String
+    
+    ' ADOオブジェクトを作成
+    Set conn = CreateObject("ADODB.Connection")
+    Set rs = CreateObject("ADODB.Recordset")
+    
+    ' 接続文字列を設定（適切に変更）
+    conn.Open "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" & ThisWorkbook.FullName & ";Extended Properties='Excel 12.0 Xml;HDR=YES';"
+    
+    ' ソースとなるシートを指定（必要に応じて変更）
+    Set sourceSheet = ThisWorkbook.Sheets("YourSourceSheet")
+    ' 変換後のデータを格納するシートを指定（必要に応じて変更）
+    Set targetSheet = ThisWorkbook.Sheets("YourTargetSheet")
+    
+    ' ソースシートの最終行を取得
+    lastRow = sourceSheet.Cells(sourceSheet.Rows.Count, "A").End(xlUp).Row
+    
+    ' データを変換してターゲットシートに書き込み
+    For i = 1 To lastRow
+        ' ソースシートから日付を取得
+        sourceDate = sourceSheet.Cells(i, 1).Value
+        
+        ' 日付を変換
+        convertedType = ConvertDateUsingSQL(conn, sourceDate)
+        
+        ' ターゲットシートに書き込み
+        targetSheet.Cells(i, 1).Value = sourceDate
+        targetSheet.Cells(i, 2).Value = convertedType
+    Next i
+    
+    ' クリーンアップ
+    rs.Close
+    Set rs = Nothing
+    conn.Close
+    Set conn = Nothing
+End Sub
+
+Function ConvertDateUsingSQL(conn As Object, sourceDate As String) As String
+    Dim sql As String
+    Dim convertedType As String
+    
+    ' SQLクエリを構築
+    sql = "SELECT TargetType FROM WK WHERE SourceDate = '" & sourceDate & "';"
+    
+    ' SQLクエリを実行
+    Set rs = conn.Execute(sql)
+    
+    ' 結果を取得
+    If Not rs.EOF Then
+        convertedType = rs.Fields("TargetType").Value
+    Else
+        ' 対応するデータが見つからなかった場合の処理
+        convertedType = "Not Found"
+    End If
+    
+    ' クリーンアップ
+    rs.Close
+    Set rs = Nothing
+    
+    ' 変換された文字列を返す
+    ConvertDateUsingSQL = convertedType
+End Function
